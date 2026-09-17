@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+#import plotly.express as px
 import os
 from datetime import date
 
@@ -67,15 +67,15 @@ if not df.empty:
 		st.subheader("Repartition des dechets par type")
 		fig_pie=px.pie(df,names="Types",values="Quantite",hole=0.3)
 		fig_cout = px.bar(df,x="Type",y="Cout_Estime",color="Type",title="cout par categorie")
-		st.plotly_chart(fig_pie,use_container_width=True)
-		st.plotly_chart(fig_cout)
+		st.bar_chart(fig_pie,use_container_width=True)
+		st.bar_chart(fig_cout)
 	with col2:
 		st.subheader("Evolution temporelle")
 		df["Date"]=pd.to_datetime(df["Date"])
 		fig_line=px.line(df.sort_values("Date"),x="Date",y="Quantite",color="Type")
 		fig_pie=px.pie(df,names="Type",values="Cout_Estime",title="Repartition de la perte (%)")
-		st.plotly_chart(fig_line,use_container_width=True)
-		st.plotly_chart(fig_pie)
+		st.bar_chart(fig_line,use_container_width=True)
+		st.bar_chart(fig_pie)
 
 	st.subheader(" Tableau detaille ")
 	st.dataframe(df,use_container_width=True)
