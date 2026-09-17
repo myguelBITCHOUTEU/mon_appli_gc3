@@ -65,7 +65,7 @@ if not df.empty:
 	
 	with col1:
 		st.subheader("Repartition des dechets par type")
-		fig_pie=px.pie(df,names="Types",values="Quantite",hole=0.3)
+		fig_pie=px.pie(df,names="Type",values="Qte",hole=0.3)
 		fig_cout = px.bar(df,x="Type",y="Cout_Estime",color="Type",title="cout par categorie")
 		st.plotly_chart(fig_pie,use_container_width=True)
 		st.plotly_chart(fig_cout)
