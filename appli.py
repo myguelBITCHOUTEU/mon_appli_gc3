@@ -48,7 +48,7 @@ with st.sidebar.form("form_dechet"):
 if submit:
 	cout= quantite*PRIX_UNITAIRES[type_dechet]
 	new_row=pd.DataFrame([[date_saisie,type_dechet,quantite,unite,cout,cause]],
-										columns=["Date","type","Quantite","unite","Cout_Estime","Cause"])
+										columns=["Date","Type","Quantite","Unite","Cout_Estime","Cause"])
 	df=load_data()
 	df=pd.concat([df,new_row],ignore_index=True)
 	df.to_csv(DATA_FILE,index=False)
@@ -56,9 +56,8 @@ if submit:
 
 #------------------- ANALYSE DES DONNEES ----------------
 
-
+df=load_data()
 if not df.empty:
-	df=load_data()
 
 	col1,col2=st.columns(2)
 	total_perte=df["Cout_Estime"].sum()
@@ -66,7 +65,7 @@ if not df.empty:
 	
 	with col1:
 		st.subheader("Repartition des dechets par type")
-		fig_pie=px.pie(df,names="Type",values="Qte",hole=0.3)
+		fig_pie=px.pie(df,names="Type",values="Quantite",hole=0.3)
 		fig_cout = px.bar(df,x="Type",y="Cout_Estime",color="Type",title="cout par categorie")
 		st.plotly_chart(fig_pie,use_container_width=True)
 		st.plotly_chart(fig_cout)
