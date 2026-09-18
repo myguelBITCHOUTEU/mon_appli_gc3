@@ -56,8 +56,9 @@ if submit:
 
 #------------------- ANALYSE DES DONNEES ----------------
 
-df=load_data()
+
 if not df.empty:
+	df=load_data()
 
 	col1,col2=st.columns(2)
 	total_perte=df["Cout_Estime"].sum()
