@@ -15,7 +15,7 @@ DATA_FILE="dechets_data.csv"
 # ---------------- Dictionnaire des prix unitaires moyens ---------------------
 
 PRIX_UNITAIRES={
-	"parpaings casses":500, # fcfa par parpaing
+		"parpaings casses":500, # fcfa par parpaing
         "chutes de fer":800, # fcfa par kg
         "beton residuel":75000, # fcfa par m^3
         "bois de coffrage": 2500, # fcfa par planche
@@ -28,7 +28,7 @@ def load_data():
 	if os.path.exists(DATA_FILE):
 		return pd.read_csv(DATA_FILE)
 	return pd.DataFrame(columns=["Date","Type","quantite","unite","cout_Estime","cause"])
-
+ 
 # ----------------- interface utilisateur ---------------------
 
 st.title(" ANALYSE FINANCIERE DES DECHETS DE CHANTIER ")
@@ -42,12 +42,12 @@ with st.sidebar.form("form_dechet"):
 	quantite=st.number_input("Quantite",min_value=0.0,step=1.0)
 	cause=st.text_input("cause")
 	unite=st.selectbox("Unite",["Unite (U)","kg","m3","Tonne"])
-
+	mois=date_saisie.month
 	submit=st.form_submit_button("calculer la perte et enregistrer le dechet")
 
 if submit:
 	cout= quantite*PRIX_UNITAIRES[type_dechet]
-	new_row=pd.DataFrame([[date_saisie,type_dechet,quantite,unite,cout,cause]],
+	new_row=pd.DataFrame([[date _saisie,type_dechet,quantite,unite,cout,cause]],
 										columns=["Date","Type","Quantite","Unite","Cout_Estime","Cause"])
 	df=load_data()
 	df=pd.concat([df,new_row],ignore_index=True)
