@@ -1,6 +1,6 @@
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
-st_autorefresh(interval=25*60*100,key="keep_alive")
+from streamlit-autorefresh import st-autorefresh
+st-autorefresh(interval=25*60*100,key="keep_alive")
 import pandas as pd
 import plotly.express as px
 import os
