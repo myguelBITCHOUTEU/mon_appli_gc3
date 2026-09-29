@@ -1,4 +1,6 @@
 import streamlit as st
+from streamlit_autorefresh import st.autorefresh
+st_autorefresh(interval=25*60*100,key="keep_alive")
 import pandas as pd
 import plotly.express as px
 import os
@@ -47,7 +49,7 @@ with st.sidebar.form("form_dechet"):
 
 if submit:
 	cout= quantite*PRIX_UNITAIRES[type_dechet]
-	new_row=pd.DataFrame([[date _saisie,type_dechet,quantite,unite,cout,cause]],
+	new_row=pd.DataFrame([[date_saisie,type_dechet,quantite,unite,cout,cause]],
 										columns=["Date","Type","Quantite","Unite","Cout_Estime","Cause"])
 	df=load_data()
 	df=pd.concat([df,new_row],ignore_index=True)
