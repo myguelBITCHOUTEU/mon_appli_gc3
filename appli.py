@@ -81,7 +81,7 @@ CAUSES_FREQUENTES = [
     "Non-conformité / Défaut livraison"
 ]
 
-CHANTIERS_DISPONIBLES = []
+CHANTIERS_DISPONIBLES = [st.input("")]
 ZONES_CHANTIER = ["Zone A - Gros Œuvre", "Zone B - Second Œuvre", "Zone C - Base Vie / Stockage", "Voirie & Réseaux (VRD)"]
 
 # Colonnes attendues dans le schéma de l'application
