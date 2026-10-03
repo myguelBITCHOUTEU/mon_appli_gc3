@@ -81,7 +81,7 @@ CAUSES_FREQUENTES = [
     "Non-conformité / Défaut livraison"
 ]
 
-CHANTIERS_DISPONIBLES = ["Chantier Tour Horizon (GC)", "Chantier Riviera", "Pont Autoroutier Est"]
+CHANTIERS_DISPONIBLES = ["input("entrez un chantier")"]
 ZONES_CHANTIER = ["Zone A - Gros Œuvre", "Zone B - Second Œuvre", "Zone C - Base Vie / Stockage", "Voirie & Réseaux (VRD)"]
 
 # Colonnes attendues dans le schéma de l'application
