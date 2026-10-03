@@ -81,6 +81,7 @@ CAUSES_FREQUENTES = [
     "Non-conformité / Défaut livraison"
 ]
 
+NOM_CHANTIER = "Résidence BITCHOUTEU"
 ZONES_CHANTIER = ["Zone A - Gros Œuvre", "Zone B - Second Œuvre", "Zone C - Base Vie / Stockage", "Voirie & Réseaux (VRD)"]
 
 # Colonnes attendues dans le schéma de l'application
@@ -203,7 +204,7 @@ st.sidebar.markdown("---")
 st.sidebar.header("📝 Saisie Manuelle Rapide")
 
 with st.sidebar.form("form_dechet", clear_on_submit=True):
-    c_chantier = st.text_input("Chantier","Résidence BITCHOUTEU")
+    c_chantier = st.text_input("Chantier",NOM_CHANTIER)
     c_zone = st.selectbox("Zone / Lot", ZONES_CHANTIER)
     c_date = st.date_input("Date", date.today())
     c_type = st.selectbox("Matériau", list(REFERENTIEL_MATERIAUX.keys()))
