@@ -11,7 +11,7 @@ from datetime import date, datetime
 # 1. OPTIMISATION HAUTE PERFORMANCE & CONFIGURATION
 # ==============================================================================
 st.set_page_config(
-    page_title="BTP EcoWaste Pro - Import & Performance",
+    page_title="BTP EcoWaste Pro ",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -65,7 +65,7 @@ REFERENTIEL_MATERIAUX = {
     "Déchets Dangereux (Peintures/Huiles)": {"prix": 5000, "unite": "Litre", "co2_facteur": 3.0}
 }
 
-FILIERES_VALORISATION = [
+VALORISATION = [
     "Réemploi sur site", 
     "Recyclage / Filière externe", 
     "Revalorisation Énergétique", 
