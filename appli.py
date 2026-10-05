@@ -212,7 +212,7 @@ with st.sidebar.form("form_dechet", clear_on_submit=True):
     unite = REFERENTIEL_MATERIAUX[c_type]["unite"]
     c_qte = st.number_input(f"Quantité ({unite})", min_value=0.1, step=1.0, value=1.0)
     
-    c_filiere = st.selectbox("Filière Traitement", FILIERES_VALORISATION)
+    c_filiere = st.selectbox("Filière Traitement", VALORISATION)
     c_cause = st.selectbox("Cause Déchet", CAUSES_FREQUENTES)
     
     submitted = st.form_submit_button("⚡ Enregistrer")
