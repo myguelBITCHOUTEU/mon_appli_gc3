@@ -1,64 +1,35 @@
-import streamlit as st
-import pandas as pd
-import plotly.express as px
 import os
 import threading
 import time
 import urllib.request
 from datetime import date, datetime
 
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
 # ==============================================================================
-# 1. CONFIGURATION ET OPTIMISATION
+# 1. CONFIGURATION
 # ==============================================================================
 st.set_page_config(
-    page_title="BTP EcoWaste Pro - Import & Performance",
-    page_icon="⚡",
+    page_title="BTP EcoWaste Pro",
+    page_icon="🏗️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-PLOT_CONFIG = {
-    "displayModeBar": False,
-    "responsive": True
-}
-
+PLOT_CONFIG = {"displayModeBar": False, "responsive": True}
 DATA_FILE = "dechets_data.csv"
 DATA_DIRECTORY = "data"
 os.makedirs(DATA_DIRECTORY, exist_ok=True)
 
-# ==============================================================================
-# 2. MODULE ANTI-SOMMEIL CONSERVÉ
-# ==============================================================================
-APP_URL = os.getenv("STREAMLIT_APP_URL", "")
-
-
-def background_keep_alive(target_url, interval_sec=600):
-    """Effectue un ping HTTP toutes les 10 minutes."""
-    while True:
-        try:
-            if target_url:
-                req = urllib.request.Request(
-                    target_url,
-                    headers={"User-Agent": "Mozilla/5.0 KeepAlive-Bot"}
-                )
-                with urllib.request.urlopen(req, timeout=10):
-                    pass
-        except Exception:
-            pass
-        time.sleep(interval_sec)
-
-
-if "keep_alive_started" not in st.session_state and APP_URL:
-    keep_alive_thread = threading.Thread(
-        target=background_keep_alive,
-        args=(APP_URL, 600),
-        daemon=True
-    )
-    keep_alive_thread.start()
-    st.session_state["keep_alive_started"] = True
+COLONNES_ATTENDUES = [
+    "Chantier", "Zone", "Date", "Type", "Quantite", "Unite",
+    "Cout_Estime", "Filiere", "Cause", "CO2_Impact_kg"
+]
 
 # ==============================================================================
-# 3. REFERENTIELS BTP CONSERVÉS
+# 2. REFERENTIELS BTP
 # ==============================================================================
 REFERENTIEL_MATERIAUX = {
     "Béton résiduel": {"prix": 75000, "unite": "m3", "co2_facteur": 240},
@@ -69,14 +40,14 @@ REFERENTIEL_MATERIAUX = {
     "Plâtre / Chutes de placo": {"prix": 12000, "unite": "Tonne", "co2_facteur": 120},
     "Plastiques & Gainages": {"prix": 1500, "unite": "kg", "co2_facteur": 2.5},
     "Cartons & Emballages": {"prix": 300, "unite": "kg", "co2_facteur": 0.9},
-    "Déchets Dangereux (Peintures/Huiles)": {"prix": 5000, "unite": "Litre", "co2_facteur": 3.0}
+    "Déchets Dangereux (Peintures/Huiles)": {"prix": 5000, "unite": "Litre", "co2_facteur": 3.0},
 }
 
 FILIERES_VALORISATION = [
     "Réemploi sur site",
     "Recyclage / Filière externe",
     "Revalorisation Énergétique",
-    "Mise en Décharge / CET (Non Valorisé)"
+    "Mise en Décharge / CET (Non Valorisé)",
 ]
 
 CAUSES_FREQUENTES = [
@@ -85,57 +56,99 @@ CAUSES_FREQUENTES = [
     "Casse à la manutention / Transport",
     "Intempéries / Stockage inadéquat",
     "Fin de péremption (Mortier/Ciment)",
-    "Non-conformité / Défaut livraison"
+    "Non-conformité / Défaut livraison",
 ]
 
 CHANTIERS_DISPONIBLES = [
     "Chantier Tour Horizon (GC)",
     "Chantier Riviera",
-    "Pont Autoroutier Est"
+    "Pont Autoroutier Est",
 ]
 
 ZONES_CHANTIER = [
     "Zone A - Gros Œuvre",
     "Zone B - Second Œuvre",
     "Zone C - Base Vie / Stockage",
-    "Voirie & Réseaux (VRD)"
-]
-
-COLONNES_ATTENDUES = [
-    "Chantier", "Zone", "Date", "Type", "Quantite", "Unite",
-    "Cout_Estime", "Filiere", "Cause", "CO2_Impact_kg"
+    "Voirie & Réseaux (VRD)",
 ]
 
 # ==============================================================================
-# 4. CHARGEMENT ET STOCKAGE CSV ORIGINAL CONSERVÉS
+# 3. STYLE
 # ==============================================================================
-@st.cache_data(show_spinner=False, ttl=3600)
-def load_cached_data():
-    """Charge les données existantes de l'application."""
-    if os.path.exists(DATA_FILE):
+st.markdown(
+    """
+    <style>
+    .stApp { background: #f8fafc; }
+    .block-container { max-width: 1500px; padding-top: 2rem; }
+    .title-banner {
+        background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
+        padding: 28px 32px; border-radius: 18px; color: white;
+        margin-bottom: 25px; box-shadow: 0 8px 24px rgba(15,23,42,.16);
+    }
+    .title-banner h1 { margin: 0; font-size: 2.1rem; font-weight: 800; }
+    .title-banner p { margin: 8px 0 0; opacity: .92; }
+    div[data-testid="stMetric"] {
+        background: white; border: 1px solid #e2e8f0; padding: 18px;
+        border-radius: 14px; box-shadow: 0 3px 12px rgba(15,23,42,.06);
+    }
+    .stButton > button { border-radius: 10px; min-height: 42px; font-weight: 600; }
+    .data-status {
+        background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 14px;
+        border-radius: 10px; color: #065f46; margin-bottom: 15px;
+    }
+    .insight {
+        background: #ecfdf5; border-left: 5px solid #10b981;
+        padding: 12px 15px; border-radius: 8px; color: #064e3b;
+        margin: 8px 0 18px;
+    }
+    </style>
+    <div class="title-banner">
+      <h1>⚡ BTP EcoWaste Pro</h1>
+      <p>Suivi intelligent des déchets, des coûts et de l'impact carbone des chantiers</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ==============================================================================
+# 4. ANTI-SOMMEIL CONSERVE ET OPTIONNEL
+# ==============================================================================
+APP_URL = os.getenv("STREAMLIT_APP_URL", "")
+
+
+def background_keep_alive(target_url, interval_sec=600):
+    """Ping optionnel. La politique de veille dépend de l'hébergeur."""
+    while True:
         try:
-            df = pd.read_csv(DATA_FILE, parse_dates=["Date"])
-            for col in COLONNES_ATTENDUES:
-                if col not in df.columns:
-                    df[col] = None
-            return df[COLONNES_ATTENDUES]
+            if target_url:
+                request = urllib.request.Request(
+                    target_url,
+                    headers={"User-Agent": "BTP-EcoWaste-KeepAlive"},
+                )
+                with urllib.request.urlopen(request, timeout=10):
+                    pass
         except Exception:
             pass
+        time.sleep(interval_sec)
+
+
+if "keep_alive_started" not in st.session_state and APP_URL:
+    threading.Thread(
+        target=background_keep_alive,
+        args=(APP_URL, 600),
+        daemon=True,
+    ).start()
+    st.session_state["keep_alive_started"] = True
+
+# ==============================================================================
+# 5. DONNEES ET NORMALISATION
+# ==============================================================================
+def dataframe_vide():
     return pd.DataFrame(columns=COLONNES_ATTENDUES)
 
 
-def save_and_invalidate_cache(df):
-    """Sauvegarde les données dans le fichier CSV principal."""
-    df.to_csv(DATA_FILE, index=False, encoding="utf-8-sig")
-    st.session_state.df = df
-    load_cached_data.clear()
-
-
-# ==============================================================================
-# 5. AJOUT : NORMALISATION DES CSV
-# ============================================================================
 def normaliser_dataframe(df):
-    """Complète les colonnes manquantes et calcule les valeurs nécessaires."""
+    """Complète les colonnes et évite les erreurs de type/date."""
     df = df.copy()
 
     for col in ["Chantier", "Zone", "Type"]:
@@ -160,17 +173,17 @@ def normaliser_dataframe(df):
         df["Cout_Estime"] = df.apply(
             lambda row: row["Quantite"] * REFERENTIEL_MATERIAUX.get(
                 row["Type"], {}
-            ).get("prix", 0), axis=1
+            ).get("prix", 0),
+            axis=1,
         )
-    df["Cout_Estime"] = pd.to_numeric(
-        df["Cout_Estime"], errors="coerce"
-    ).fillna(0)
+    df["Cout_Estime"] = pd.to_numeric(df["Cout_Estime"], errors="coerce").fillna(0)
 
     if "CO2_Impact_kg" not in df.columns:
         df["CO2_Impact_kg"] = df.apply(
             lambda row: row["Quantite"] * REFERENTIEL_MATERIAUX.get(
                 row["Type"], {}
-            ).get("co2_facteur", 0), axis=1
+            ).get("co2_facteur", 0),
+            axis=1,
         )
     df["CO2_Impact_kg"] = pd.to_numeric(
         df["CO2_Impact_kg"], errors="coerce"
@@ -191,502 +204,386 @@ def lire_fichier_csv(path):
     try:
         return normaliser_dataframe(pd.read_csv(path))
     except Exception:
-        return pd.DataFrame(columns=COLONNES_ATTENDUES)
+        return dataframe_vide()
+
+
+def sauvegarder_fichier(df, path):
+    normaliser_dataframe(df).to_csv(path, index=False, encoding="utf-8-sig")
 
 
 def liste_fichiers_csv():
-    """Retourne le fichier historique et tous les fichiers du dossier data."""
+    """Liste uniquement les fichiers CSV réellement disponibles."""
     fichiers = []
     if os.path.exists(DATA_FILE):
         fichiers.append(DATA_FILE)
-    if os.path.exists(DATA_DIRECTORY):
+    if os.path.isdir(DATA_DIRECTORY):
         fichiers.extend(
-            os.path.join(DATA_DIRECTORY, file_name)
-            for file_name in sorted(os.listdir(DATA_DIRECTORY))
-            if file_name.lower().endswith(".csv")
+            os.path.join(DATA_DIRECTORY, nom)
+            for nom in sorted(os.listdir(DATA_DIRECTORY))
+            if nom.lower().endswith(".csv")
         )
     return fichiers
 
-# ==============================================================================
-# 6. DONNÉES DE DÉMONSTRATION ORIGINALES CONSERVÉES
-# ==============================================================================
+
 def create_demo_data():
-    """Crée un jeu de données réaliste pour tester le tableau de bord."""
-    demo_rows = [
-        {
-            "Chantier": "Chantier Tour Horizon (GC)",
-            "Zone": "Zone A - Gros Œuvre",
-            "Date": pd.Timestamp("2026-01-15"),
-            "Type": "Béton résiduel",
-            "Quantite": 3.5,
-            "Unite": "m3",
-            "Cout_Estime": 262500,
-            "Filiere": "Réemploi sur site",
-            "Cause": "Sur-commande / Surplus de stock",
-            "CO2_Impact_kg": 840
-        },
-        {
-            "Chantier": "Chantier Riviera",
-            "Zone": "Zone B - Second Œuvre",
-            "Date": pd.Timestamp("2026-02-04"),
-            "Type": "Bois de coffrage",
-            "Quantite": 25,
-            "Unite": "Planche",
-            "Cout_Estime": 62500,
-            "Filiere": "Recyclage / Filière externe",
-            "Cause": "Erreur de découpe / Mise en œuvre",
-            "CO2_Impact_kg": 12.5
-        },
-        {
-            "Chantier": "Pont Autoroutier Est",
-            "Zone": "Voirie & Réseaux (VRD)",
-            "Date": pd.Timestamp("2026-03-12"),
-            "Type": "Gravats / Remblais",
-            "Quantite": 8,
-            "Unite": "Tonne",
-            "Cout_Estime": 80000,
-            "Filiere": "Mise en Décharge / CET (Non Valorisé)",
-            "Cause": "Casse à la manutention / Transport",
-            "CO2_Impact_kg": 120
-        },
-        {
-            "Chantier": "Chantier Tour Horizon (GC)",
-            "Zone": "Zone C - Base Vie / Stockage",
-            "Date": pd.Timestamp("2026-04-20"),
-            "Type": "Cartons & Emballages",
-            "Quantite": 120,
-            "Unite": "kg",
-            "Cout_Estime": 36000,
-            "Filiere": "Recyclage / Filière externe",
-            "Cause": "Sur-commande / Surplus de stock",
-            "CO2_Impact_kg": 108
-        },
-        {
-            "Chantier": "Chantier Riviera",
-            "Zone": "Zone A - Gros Œuvre",
-            "Date": pd.Timestamp("2026-05-08"),
-            "Type": "Chutes de fer / Acier",
-            "Quantite": 180,
-            "Unite": "kg",
-            "Cout_Estime": 144000,
-            "Filiere": "Recyclage / Filière externe",
-            "Cause": "Non-conformité / Défaut livraison",
-            "CO2_Impact_kg": 324
-        },
-        {
-            "Chantier": "Pont Autoroutier Est",
-            "Zone": "Zone B - Second Œuvre",
-            "Date": pd.Timestamp("2026-06-17"),
-            "Type": "Plâtre / Chutes de placo",
-            "Quantite": 2.4,
-            "Unite": "Tonne",
-            "Cout_Estime": 28800,
-            "Filiere": "Mise en Décharge / CET (Non Valorisé)",
-            "Cause": "Casse à la manutention / Transport",
-            "CO2_Impact_kg": 288
-        }
+    """Données conservées pour le bouton de démonstration manuelle."""
+    rows = [
+        ["Chantier Tour Horizon (GC)", "Zone A - Gros Œuvre", "2026-01-15", "Béton résiduel", 3.5, "Réemploi sur site", "Sur-commande / Surplus de stock"],
+        ["Chantier Riviera", "Zone B - Second Œuvre", "2026-02-04", "Bois de coffrage", 25, "Recyclage / Filière externe", "Erreur de découpe / Mise en œuvre"],
+        ["Pont Autoroutier Est", "Voirie & Réseaux (VRD)", "2026-03-12", "Gravats / Remblais", 8, "Mise en Décharge / CET (Non Valorisé)", "Casse à la manutention / Transport"],
+        ["Chantier Tour Horizon (GC)", "Zone C - Base Vie / Stockage", "2026-04-20", "Cartons & Emballages", 120, "Recyclage / Filière externe", "Sur-commande / Surplus de stock"],
+        ["Chantier Riviera", "Zone A - Gros Œuvre", "2026-05-08", "Chutes de fer / Acier", 180, "Recyclage / Filière externe", "Non-conformité / Défaut livraison"],
+        ["Pont Autoroutier Est", "Zone B - Second Œuvre", "2026-06-17", "Plâtre / Chutes de placo", 2.4, "Mise en Décharge / CET (Non Valorisé)", "Casse à la manutention / Transport"],
     ]
-    return pd.DataFrame(demo_rows, columns=COLONNES_ATTENDUES)
+    columns = ["Chantier", "Zone", "Date", "Type", "Quantite", "Filiere", "Cause"]
+    return normaliser_dataframe(pd.DataFrame(rows, columns=columns))
 
 
-if "df" not in st.session_state:
-    st.session_state.df = load_cached_data()
-
-if "source_file" not in st.session_state:
-    st.session_state.source_file = DATA_FILE
-
-# ==============================================================================
-# 7. INTERFACE VISUELLE AMÉLIORÉE : ENTITÉS HTML CORRIGÉES
-# ==============================================================================
-st.markdown(
-    """
-    <style>
-        .stApp { background: #f8fafc; }
-        .block-container { padding-top: 2rem; padding-bottom: 3rem; max-width: 1500px; }
-        .title-banner {
-            background: linear-gradient(135deg, #059669 0%, #1e3a8a 100%);
-            padding: 28px 32px; border-radius: 18px; color: white;
-            margin-bottom: 25px; box-shadow: 0 8px 24px rgba(15, 23, 42, .16);
-        }
-        .title-banner h1 { margin: 0; font-size: 2.1rem; font-weight: 800; }
-        .title-banner p { margin: 8px 0 0; opacity: .92; font-size: 1rem; }
-        div[data-testid="stMetric"] {
-            background: white; border: 1px solid #e2e8f0; padding: 18px;
-            border-radius: 14px; box-shadow: 0 3px 12px rgba(15, 23, 42, .06);
-        }
-        div[data-testid="stMetric"] label { color: #475569; font-weight: 600; }
-        .stButton > button { border-radius: 10px; min-height: 42px; font-weight: 600; }
-        section[data-testid="stSidebar"] { background: #f1f5f9; }
-        .data-status {
-            background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 14px;
-            border-radius: 10px; color: #065f46; font-size: .9rem; margin-bottom: 15px;
-        }
-        .insight {
-            background: #ecfdf5; border-left: 5px solid #10b981; padding: 12px 15px;
-            border-radius: 8px; color: #064e3b; margin: 8px 0 18px;
-        }
-    </style>
-    <div class="title-banner">
-        <h1>⚡ BTP EcoWaste Pro</h1>
-        <p>Suivi intelligent des déchets, des coûts et de l'impact carbone des chantiers</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# IMPORTANT : aucune donnée n'est chargée automatiquement.
+# Une nouvelle session commence toujours vide.
+if "session_initialisee" not in st.session_state:
+    st.session_state.df = dataframe_vide()
+    st.session_state.source_file = ""
+    st.session_state.session_initialisee = True
 
 # ==============================================================================
-# 8. OPTIONS ORIGINALES : TEST ET GESTION DES DONNÉES
+# 6. SIDEBAR : CHOIX MANUEL D'UN FICHIER DE CHANTIER
 # ==============================================================================
-st.sidebar.header("🧪 Données de test")
-
-if st.sidebar.button("📊 Ajouter les données de démonstration", use_container_width=True):
-    demo_df = create_demo_data()
-    if not st.session_state.df.empty:
-        demo_df = pd.concat([st.session_state.df, demo_df], ignore_index=True)
-    save_and_invalidate_cache(demo_df)
-    st.sidebar.success("Données de démonstration ajoutées.")
-    st.rerun()
-
-if st.sidebar.button("🔄 Remplacer par les données de test", use_container_width=True):
-    demo_df = create_demo_data()
-    save_and_invalidate_cache(demo_df)
-    st.session_state.source_file = DATA_FILE
-    st.sidebar.success("Jeu de test chargé.")
-    st.rerun()
-
-if st.sidebar.button("🗑️ Vider toutes les données", use_container_width=True):
-    empty_df = pd.DataFrame(columns=COLONNES_ATTENDUES)
-    save_and_invalidate_cache(empty_df)
-    st.sidebar.success("Toutes les données ont été supprimées.")
-    st.rerun()
-
-st.sidebar.caption(f"💾 Stockage actif : {DATA_FILE}")
-st.sidebar.markdown("---")
-
-# ==============================================================================
-# 9. AJOUT : LISTE DE FICHIERS CSV ET SÉLECTION PAR L'UTILISATEUR
-# ======================================================================
-st.sidebar.header("📁 Fichiers CSV disponibles")
+st.sidebar.header("📁 Données des chantiers")
 
 available_paths = liste_fichiers_csv()
 available_names = [os.path.basename(path) for path in available_paths]
 
 if available_names:
     selected_name = st.sidebar.selectbox(
-        "Choisir un fichier à tester",
+        "Choisir un fichier / chantier à tester",
         available_names,
-        index=(available_names.index(os.path.basename(st.session_state.source_file))
-               if os.path.basename(st.session_state.source_file) in available_names else 0)
     )
 
-    if st.sidebar.button("🧪 Tester le fichier sélectionné", use_container_width=True):
+    if st.sidebar.button("🧪 Tester ce chantier", use_container_width=True):
         selected_path = next(
             path for path in available_paths
             if os.path.basename(path) == selected_name
         )
         selected_df = lire_fichier_csv(selected_path)
-        st.session_state.df = selected_df
-        st.session_state.source_file = selected_path
-        st.sidebar.success(f"{len(selected_df)} ligne(s) chargée(s).")
-        st.rerun()
-else:
-    st.sidebar.info("Aucun fichier CSV dans data/.")
 
-st.sidebar.caption("Ajoutez d'autres CSV dans le dossier data/ de votre dépôt GitHub.")
+        if selected_df.empty:
+            st.sidebar.error("Fichier vide ou données invalides.")
+        else:
+            st.session_state.df = selected_df
+            st.session_state.source_file = selected_path
+            st.rerun()
+else:
+    st.sidebar.info(
+        "Aucun fichier disponible. Ajoutez vos CSV dans le dossier data/."
+    )
+
+st.sidebar.caption(
+    "Les fichiers sont gérés par vous. Aucun fichier de démonstration n'est créé automatiquement."
+)
 st.sidebar.markdown("---")
 
 # ==============================================================================
-# 10. BARRE LATERALE - IMPORTATION ORIGINALE CONSERVÉE ET RENFORCÉE
+# 7. BOUTONS DE DEMONSTRATION MANUELLE
+# ==============================================================================
+st.sidebar.header("🧪 Données de démonstration")
+
+if st.sidebar.button("📊 Charger la démonstration", use_container_width=True):
+    st.session_state.df = create_demo_data()
+    st.session_state.source_file = "Démonstration temporaire"
+    st.rerun()
+
+if st.sidebar.button("🗑️ Réinitialiser la session", use_container_width=True):
+    st.session_state.df = dataframe_vide()
+    st.session_state.source_file = ""
+    st.rerun()
+
+# ==============================================================================
+# 8. IMPORTATION CSV
 # ==============================================================================
 st.sidebar.header("📂 Importation CSV")
-
 uploaded_file = st.sidebar.file_uploader(
     "Importer un registre CSV",
     type=["csv"],
-    help="Colonnes recommandées : Chantier, Zone, Date, Type, Quantite..."
+    help="Colonnes recommandées : Chantier, Zone, Date, Type, Quantite...",
 )
 
 if uploaded_file is not None:
     try:
-        imported_df = pd.read_csv(uploaded_file)
-        required_minimal = ["Chantier", "Zone", "Date", "Type", "Quantite"]
-        missing_cols = [col for col in required_minimal if col not in imported_df.columns]
+        raw_import = pd.read_csv(uploaded_file)
+        required = ["Chantier", "Zone", "Date", "Type", "Quantite"]
+        missing = [col for col in required if col not in raw_import.columns]
 
-        if missing_cols:
-            st.sidebar.error(
-                "⚠️ Colonnes requises manquantes : " + ", ".join(missing_cols)
-            )
+        if missing:
+            st.sidebar.error("Colonnes manquantes : " + ", ".join(missing))
         else:
-            imported_cleaned = normaliser_dataframe(imported_df)
-            st.sidebar.success(f"🔍 Fichier valide ({len(imported_cleaned)} lignes)")
-
-            file_name = st.sidebar.text_input(
+            imported_df = normaliser_dataframe(raw_import)
+            st.sidebar.success(f"Fichier valide : {len(imported_df)} ligne(s)")
+            import_name = st.sidebar.text_input(
                 "Nom du fichier à stocker",
-                value=f"import_{datetime.now():%Y%m%d_%H%M%S}.csv"
+                value=f"import_{datetime.now():%Y%m%d_%H%M%S}.csv",
             )
-            if not file_name.lower().endswith(".csv"):
-                file_name += ".csv"
+            if not import_name.lower().endswith(".csv"):
+                import_name += ".csv"
 
-            col_b1, col_b2 = st.sidebar.columns(2)
-
-            if col_b1.button("➕ Fusionner"):
-                df_merged = pd.concat(
-                    [st.session_state.df, imported_cleaned],
-                    ignore_index=True
+            b1, b2 = st.sidebar.columns(2)
+            if b1.button("➕ Fusionner"):
+                current = normaliser_dataframe(st.session_state.df)
+                merged = pd.concat([current, imported_df], ignore_index=True)
+                sauvegarder_fichier(
+                    merged,
+                    os.path.join(DATA_DIRECTORY, os.path.basename(import_name)),
                 )
-                save_and_invalidate_cache(df_merged)
-                save_path = os.path.join(DATA_DIRECTORY, os.path.basename(file_name))
-                df_merged.to_csv(save_path, index=False, encoding="utf-8-sig")
-                st.session_state.source_file = save_path
-                st.sidebar.success("Données fusionnées avec succès !")
+                st.session_state.df = merged
+                st.session_state.source_file = os.path.join(DATA_DIRECTORY, os.path.basename(import_name))
                 st.rerun()
 
-            if col_b2.button("🗑️ Remplacer"):
-                save_and_invalidate_cache(imported_cleaned)
-                save_path = os.path.join(DATA_DIRECTORY, os.path.basename(file_name))
-                imported_cleaned.to_csv(save_path, index=False, encoding="utf-8-sig")
-                st.session_state.source_file = save_path
-                st.sidebar.success("Base de données remplacée !")
+            if b2.button("🗑️ Remplacer"):
+                path = os.path.join(DATA_DIRECTORY, os.path.basename(import_name))
+                sauvegarder_fichier(imported_df, path)
+                st.session_state.df = imported_df
+                st.session_state.source_file = path
                 st.rerun()
-
     except Exception as error:
         st.sidebar.error(f"Erreur d'importation : {error}")
 
 # ==============================================================================
-# 11. SAISIE MANUELLE ORIGINALE CONSERVÉE
+# 9. SAISIE MANUELLE
 # ==============================================================================
 st.sidebar.markdown("---")
 st.sidebar.header("📝 Saisie manuelle rapide")
 
 with st.sidebar.form("form_dechet", clear_on_submit=True):
-    c_chantier = st.selectbox("Chantier", CHANTIERS_DISPONIBLES)
-    c_zone = st.selectbox("Zone / Lot", ZONES_CHANTIER)
-    c_date = st.date_input("Date", date.today())
-    c_type = st.selectbox("Matériau", list(REFERENTIEL_MATERIAUX.keys()))
-    unite = REFERENTIEL_MATERIAUX[c_type]["unite"]
-    c_qte = st.number_input(f"Quantité ({unite})", min_value=0.1, step=1.0, value=1.0)
-    c_filiere = st.selectbox("Filière de traitement", FILIERES_VALORISATION)
-    c_cause = st.selectbox("Cause du déchet", CAUSES_FREQUENTES)
+    chantier = st.selectbox("Chantier", CHANTIERS_DISPONIBLES)
+    zone = st.selectbox("Zone / Lot", ZONES_CHANTIER)
+    date_constat = st.date_input("Date", date.today())
+    type_dechet = st.selectbox("Matériau", list(REFERENTIEL_MATERIAUX))
+    unite = REFERENTIEL_MATERIAUX[type_dechet]["unite"]
+    quantite = st.number_input(
+        f"Quantité ({unite})", min_value=0.1, value=1.0, step=1.0
+    )
+    filiere = st.selectbox("Filière de traitement", FILIERES_VALORISATION)
+    cause = st.selectbox("Cause du déchet", CAUSES_FREQUENTES)
     submitted = st.form_submit_button("⚡ Enregistrer", use_container_width=True)
 
 if submitted:
-    cout = c_qte * REFERENTIEL_MATERIAUX[c_type]["prix"]
-    co2 = c_qte * REFERENTIEL_MATERIAUX[c_type]["co2_facteur"]
-
-    new_entry = pd.DataFrame([{
-        "Chantier": c_chantier,
-        "Zone": c_zone,
-        "Date": pd.to_datetime(c_date),
-        "Type": c_type,
-        "Quantite": c_qte,
+    ref = REFERENTIEL_MATERIAUX[type_dechet]
+    entry = pd.DataFrame([{
+        "Chantier": chantier,
+        "Zone": zone,
+        "Date": pd.Timestamp(date_constat),
+        "Type": type_dechet,
+        "Quantite": quantite,
         "Unite": unite,
-        "Cout_Estime": cout,
-        "Filiere": c_filiere,
-        "Cause": c_cause,
-        "CO2_Impact_kg": co2
+        "Cout_Estime": quantite * ref["prix"],
+        "Filiere": filiere,
+        "Cause": cause,
+        "CO2_Impact_kg": quantite * ref["co2_facteur"],
     }])
+    updated = pd.concat([st.session_state.df, entry], ignore_index=True)
 
-    df_new = pd.concat([st.session_state.df, new_entry], ignore_index=True)
-    save_and_invalidate_cache(df_new)
-    if st.session_state.source_file and st.session_state.source_file != DATA_FILE:
-        df_new.to_csv(st.session_state.source_file, index=False, encoding="utf-8-sig")
-    st.sidebar.success("✅ Déchet enregistré et sauvegardé !")
+    # Sauvegarde dans le fichier sélectionné, ou dans le CSV principal.
+    if st.session_state.source_file and os.path.isfile(st.session_state.source_file):
+        target = st.session_state.source_file
+    else:
+        target = DATA_FILE
+
+    sauvegarder_fichier(updated, target)
+    st.session_state.df = updated
+    st.session_state.source_file = target
     st.rerun()
 
 # ==============================================================================
-# 12. FILTRES GLOBAUX ORIGINAUX CONSERVÉS
+# 10. FILTRES SANS ERREUR DE DATE
 # ==============================================================================
 df_current = normaliser_dataframe(st.session_state.df)
 st.session_state.df = df_current
 
-st.sidebar.markdown("---")
-st.sidebar.header("🔍 Filtres globaux")
-
-if not df_current.empty:
-    chantiers_opts = df_current["Chantier"].dropna().unique().tolist()
-    filter_chantier = st.sidebar.multiselect(
-        "Chantiers",
-        options=chantiers_opts,
-        default=chantiers_opts
-    )
-    df_view = df_current[df_current["Chantier"].isin(filter_chantier)]
-else:
-    df_view = df_current
-
+source_label = os.path.basename(st.session_state.source_file) if st.session_state.source_file else "Aucun fichier testé"
 st.markdown(
-    f'<div class="data-status">💾 {len(df_current)} '
-    f'enregistrement(s) conservé(s) dans <b>{os.path.basename(st.session_state.source_file)}</b></div>',
-    unsafe_allow_html=True
+    f'<div class="data-status">💾 Source : <b>{source_label}</b> — '
+    f'{len(df_current)} enregistrement(s) testé(s)</div>',
+    unsafe_allow_html=True,
 )
 
-# ==============================================================================
-# 13. FILTRES SUPPLÉMENTAIRES AJOUTÉS
-# ==============================================================================
-if not df_current.empty:
-    with st.expander("🔎 Filtres avancés : zone, type et période", expanded=False):
-        f1, f2, f3 = st.columns(3)
-        zones = f1.multiselect(
-            "Zones", sorted(df_view["Zone"].dropna().unique()),
-            default=sorted(df_view["Zone"].dropna().unique())
-        )
-        types = f2.multiselect(
-            "Types de déchets", sorted(df_view["Type"].dropna().unique()),
-            default=sorted(df_view["Type"].dropna().unique())
-        )
+if df_current.empty:
+    st.info(
+        "ℹ️ Aucune donnée n'est testée. Choisissez un fichier dans la barre latérale "
+        "ou importez un CSV."
+    )
+    st.stop()
+
+# Filtre chantier conservé
+st.sidebar.header("🔍 Filtres globaux")
+chantiers = sorted(df_current["Chantier"].dropna().unique().tolist())
+selected_chantiers = st.sidebar.multiselect(
+    "Chantiers", chantiers, default=chantiers
+)
+df_view = df_current[df_current["Chantier"].isin(selected_chantiers)].copy()
+
+with st.expander("🔎 Filtres avancés", expanded=False):
+    f1, f2, f3 = st.columns(3)
+    zones = sorted(df_view["Zone"].dropna().unique().tolist())
+    types = sorted(df_view["Type"].dropna().unique().tolist())
+
+    selected_zones = f1.multiselect("Zones", zones, default=zones)
+    selected_types = f2.multiselect("Types", types, default=types)
+
+    # Correction de l'erreur de la capture : date_input n'est appelé
+    # que si les dates sont valides et si le tableau n'est pas vide.
+    dates_valides = pd.to_datetime(df_view["Date"], errors="coerce").dropna()
+    date_range = None
+    if not dates_valides.empty:
         date_range = f3.date_input(
             "Période",
-            value=(df_view["Date"].min().date(), df_view["Date"].max().date())
+            value=(dates_valides.min().date(), dates_valides.max().date()),
         )
 
-    if not isinstance(date_range, tuple) or len(date_range) != 2:
-        date_range = (date_range, date_range)
+if date_range is not None:
+    if isinstance(date_range, (tuple, list)) and len(date_range) == 2:
+        date_start = pd.Timestamp(date_range[0])
+        date_end = pd.Timestamp(date_range[1]) + pd.Timedelta(days=1)
+    else:
+        date_start = pd.Timestamp(date_range)
+        date_end = date_start + pd.Timedelta(days=1)
 
-    start_date = pd.Timestamp(date_range[0])
-    end_date = pd.Timestamp(date_range[1]) + pd.Timedelta(days=1)
     df_view = df_view[
-        df_view["Zone"].isin(zones)
-        & df_view["Type"].isin(types)
-        & (df_view["Date"] >= start_date)
-        & (df_view["Date"] < end_date)
+        df_view["Zone"].isin(selected_zones)
+        & df_view["Type"].isin(selected_types)
+        & (df_view["Date"] >= date_start)
+        & (df_view["Date"] < date_end)
+    ]
+else:
+    df_view = df_view[
+        df_view["Zone"].isin(selected_zones)
+        & df_view["Type"].isin(selected_types)
     ]
 
 # ==============================================================================
-# 14. INTERPRÉTATION AUTOMATIQUE AJOUTÉE
+# 11. INTERPRETATIONS
 # ==============================================================================
 def afficher_interpretation(message):
     st.markdown(
         f'<div class="insight">💡 {message}</div>',
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
-def interpretation_generale(df):
-    if df.empty:
+def interpretation_generale(data):
+    if data.empty:
         return "Aucune donnée ne correspond aux filtres sélectionnés."
 
-    cout = df["Cout_Estime"].sum()
-    co2 = df["CO2_Impact_kg"].sum()
-    valorisation = df["Filiere"].isin([
+    cout = data["Cout_Estime"].sum()
+    co2 = data["CO2_Impact_kg"].sum()
+    valorisation = data["Filiere"].isin([
         "Réemploi sur site", "Recyclage / Filière externe"
     ]).mean() * 100
-    type_principal = df.groupby("Type")["Cout_Estime"].sum().idxmax()
-    zone_principale = df.groupby("Zone")["Cout_Estime"].sum().idxmax()
-    cause_principale = df.groupby("Cause")["Cout_Estime"].sum().idxmax()
+    type_principal = data.groupby("Type")["Cout_Estime"].sum().idxmax()
+    zone_principale = data.groupby("Zone")["Cout_Estime"].sum().idxmax()
+    cause_principale = data.groupby("Cause")["Cout_Estime"].sum().idxmax()
 
     return (
         f"### Conclusion générale\n\n"
-        f"L'analyse porte sur **{len(df)} relevé(s)**. Les pertes estimées atteignent "
+        f"L'analyse porte sur **{len(data)} relevé(s)**. Les pertes estimées sont de "
         f"**{cout:,.0f} FCFA**, avec un impact carbone de **{co2:,.1f} kg CO₂eq**. "
-        f"Le matériau prioritaire est **{type_principal}**. La zone la plus coûteuse est "
-        f"**{zone_principale}**, tandis que la cause principale est **{cause_principale}**. "
-        f"Le taux de valorisation atteint **{valorisation:.1f} %**.\n\n"
-        f"### Recommandations\n\n"
-        f"- Contrôler les commandes et les quantités livrées.\n"
-        f"- Renforcer le stockage dans la zone **{zone_principale}**.\n"
-        f"- Traiter prioritairement la cause **{cause_principale}**.\n"
-        f"- Développer le réemploi et le recyclage avant la mise en décharge."
+        f"Le matériau prioritaire est **{type_principal}**. La zone prioritaire est "
+        f"**{zone_principale}** et la cause principale est **{cause_principale}**. "
+        f"Le taux de valorisation est de **{valorisation:.1f} %**.\n\n"
+        "### Recommandations\n\n"
+        "- Contrôler les commandes et les quantités livrées.\n"
+        f"- Renforcer le stockage dans **{zone_principale}**.\n"
+        f"- Traiter prioritairement **{cause_principale}**.\n"
+        "- Développer le réemploi et le recyclage."
     )
 
 # ==============================================================================
-# 15. RÉSULTATS ET GRAPHIQUES ORIGINAUX CONSERVÉS + INTERPRÉTATIONS
+# 12. TABLEAUX DE BORD
 # ==============================================================================
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Métriques & KPIs",
     "📈 Analyse Coûts & Causes",
     "🌱 Bilan RSE / Tri",
     "📋 Registre & Export",
-    "🧠 Interprétation & Conclusion"
+    "🧠 Interprétation & Conclusion",
 ])
 
 if df_view.empty:
-    st.info(
-        "ℹ️ Aucune donnée à analyser. Utilisez les données de démonstration, "
-        "importez un fichier CSV ou saisissez un déchet."
-    )
+    st.warning("Aucun résultat pour les filtres sélectionnés.")
 else:
+    total_cost = df_view["Cout_Estime"].sum()
+    total_rows = len(df_view)
+    total_co2 = df_view["CO2_Impact_kg"].sum()
+    valorised = df_view["Filiere"].isin([
+        "Réemploi sur site", "Recyclage / Filière externe"
+    ]).sum()
+    valorisation_rate = valorised / total_rows * 100 if total_rows else 0
+
     with tab1:
         c1, c2, c3, c4 = st.columns(4)
-
-        perte_totale = df_view["Cout_Estime"].sum()
-        total_lignes = len(df_view)
-        revalorises = df_view["Filiere"].isin([
-            "Réemploi sur site", "Recyclage / Filière externe"
-        ]).sum()
-        taux_reval = revalorises / total_lignes * 100 if total_lignes > 0 else 0
-        total_co2 = df_view["CO2_Impact_kg"].sum()
-
-        c1.metric("💸 Coût total des pertes", f"{perte_totale:,.0f} FCFA")
-        c2.metric("📦 Relevés totaux", f"{total_lignes}")
-        c3.metric("♻️ Taux de valorisation", f"{taux_reval:.1f} %")
+        c1.metric("💸 Coût total des pertes", f"{total_cost:,.0f} FCFA")
+        c2.metric("📦 Relevés totaux", str(total_rows))
+        c3.metric("♻️ Taux de valorisation", f"{valorisation_rate:.1f} %")
         c4.metric("🌍 Impact carbone", f"{total_co2:,.1f} kg CO₂")
 
         st.markdown("---")
         g1, g2 = st.columns(2)
-
         with g1:
             pie_data = df_view.groupby("Type", as_index=False)["Cout_Estime"].sum()
             fig_pie = px.pie(
                 pie_data, names="Type", values="Cout_Estime", hole=0.45,
-                title="Coûts financiers par matériau (FCFA)"
+                title="Coûts financiers par matériau (FCFA)",
             )
-            fig_pie.update_layout(margin=dict(t=50, b=10, l=10, r=10))
             st.plotly_chart(fig_pie, use_container_width=True, config=PLOT_CONFIG)
             top_type = pie_data.sort_values("Cout_Estime", ascending=False).iloc[0]["Type"]
-            afficher_interpretation(f"Le matériau générant le coût le plus élevé est **{top_type}**.")
+            afficher_interpretation(f"Le matériau prioritaire est **{top_type}**.")
 
         with g2:
             trend_df = df_view.groupby(["Date", "Type"], as_index=False)["Cout_Estime"].sum()
             fig_line = px.line(
                 trend_df, x="Date", y="Cout_Estime", color="Type", markers=True,
-                title="Évolution chronologique des pertes"
+                title="Évolution chronologique des pertes",
             )
-            fig_line.update_layout(margin=dict(t=50, b=10, l=10, r=10))
             st.plotly_chart(fig_line, use_container_width=True, config=PLOT_CONFIG)
-            afficher_interpretation("Ce graphique permet de repérer les périodes de hausse des pertes et de déclencher une action corrective.")
+            afficher_interpretation("Cette courbe permet de repérer les périodes de hausse des pertes.")
 
     with tab2:
         a1, a2 = st.columns(2)
-
         with a1:
             cause_df = df_view.groupby("Cause", as_index=False)["Cout_Estime"].sum().sort_values("Cout_Estime")
-            fig_bar_cause = px.bar(
+            fig_cause = px.bar(
                 cause_df, x="Cout_Estime", y="Cause", orientation="h",
                 color="Cout_Estime", color_continuous_scale="Reds",
-                title="Impact par cause racine"
+                title="Impact par cause racine",
             )
-            st.plotly_chart(fig_bar_cause, use_container_width=True, config=PLOT_CONFIG)
+            st.plotly_chart(fig_cause, use_container_width=True, config=PLOT_CONFIG)
             afficher_interpretation(f"La cause prioritaire est **{cause_df.iloc[-1]['Cause']}**.")
 
         with a2:
             zone_df = df_view.groupby("Zone", as_index=False)["Cout_Estime"].sum()
-            fig_bar_zone = px.bar(
+            fig_zone = px.bar(
                 zone_df, x="Zone", y="Cout_Estime", color="Zone",
-                title="Coûts par zone / lot"
+                title="Coûts par zone / lot",
             )
-            st.plotly_chart(fig_bar_zone, use_container_width=True, config=PLOT_CONFIG)
+            st.plotly_chart(fig_zone, use_container_width=True, config=PLOT_CONFIG)
             top_zone = zone_df.sort_values("Cout_Estime", ascending=False).iloc[0]["Zone"]
-            afficher_interpretation(f"La zone nécessitant le plus d'attention est **{top_zone}**.")
+            afficher_interpretation(f"La zone prioritaire est **{top_zone}**.")
 
     with tab3:
         r1, r2 = st.columns(2)
-
         with r1:
             filiere_df = df_view.groupby("Filiere", as_index=False)["Quantite"].sum()
-            fig_fil = px.bar(
+            fig_filiere = px.bar(
                 filiere_df, x="Filiere", y="Quantite", color="Filiere",
-                title="Destination des déchets"
+                title="Destination des déchets",
             )
-            st.plotly_chart(fig_fil, use_container_width=True, config=PLOT_CONFIG)
-            afficher_interpretation(
-                f"Le taux de valorisation est de **{taux_reval:.1f} %**. "
-                "Le réemploi et le recyclage doivent être privilégiés."
-            )
+            st.plotly_chart(fig_filiere, use_container_width=True, config=PLOT_CONFIG)
+            afficher_interpretation(f"Le taux de valorisation est de **{valorisation_rate:.1f} %**.")
 
         with r2:
             co2_df = df_view.groupby("Type", as_index=False)["CO2_Impact_kg"].sum()
             fig_co2 = px.pie(
                 co2_df, names="Type", values="CO2_Impact_kg",
-                title="Bilan carbone (kg CO₂eq)"
+                title="Bilan carbone (kg CO₂eq)",
             )
             st.plotly_chart(fig_co2, use_container_width=True, config=PLOT_CONFIG)
             top_carbon = co2_df.sort_values("CO2_Impact_kg", ascending=False).iloc[0]["Type"]
@@ -697,16 +594,15 @@ else:
         st.dataframe(
             df_view.sort_values("Date", ascending=False),
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
         )
-
         csv_bytes = df_view.to_csv(index=False).encode("utf-8-sig")
         st.download_button(
             "📥 Télécharger le registre (CSV)",
             data=csv_bytes,
-            file_name=f"registre_dechets_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+            file_name=f"registre_dechets_{datetime.now():%Y%m%d_%H%M}.csv",
             mime="text/csv",
-            use_container_width=True
+            use_container_width=True,
         )
 
     with tab5:
