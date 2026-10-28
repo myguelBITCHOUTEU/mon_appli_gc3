@@ -348,7 +348,7 @@ st.sidebar.markdown("---")
 st.sidebar.header("📝 Saisie manuelle rapide")
 
 with st.sidebar.form("form_dechet", clear_on_submit=True):
-    chantier = st.input("entrer un Chantier")
+    chantier = st.text_input("entrer un Chantier")
     zone = st.selectbox("Zone / Lot", ZONES_CHANTIER)
     date_constat = st.date_input("Date", date.today())
     type_dechet = st.selectbox("Matériau", list(REFERENTIEL_MATERIAUX))
