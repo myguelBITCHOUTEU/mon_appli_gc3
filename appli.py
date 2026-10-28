@@ -60,9 +60,7 @@ CAUSES_FREQUENTES = [
 ]
 
 CHANTIERS_DISPONIBLES = [
-    "Chantier Tour Horizon (GC)",
-    "Chantier Riviera",
-    "Pont Autoroutier Est",
+    input("entrer un chantier")
 ]
 
 ZONES_CHANTIER = [
@@ -228,12 +226,12 @@ def liste_fichiers_csv():
 def create_demo_data():
     """Données conservées pour le bouton de démonstration manuelle."""
     rows = [
-        ["Chantier Tour Horizon (GC)", "Zone A - Gros Œuvre", "2026-01-15", "Béton résiduel", 3.5, "Réemploi sur site", "Sur-commande / Surplus de stock"],
-        ["Chantier Riviera", "Zone B - Second Œuvre", "2026-02-04", "Bois de coffrage", 25, "Recyclage / Filière externe", "Erreur de découpe / Mise en œuvre"],
-        ["Pont Autoroutier Est", "Voirie & Réseaux (VRD)", "2026-03-12", "Gravats / Remblais", 8, "Mise en Décharge / CET (Non Valorisé)", "Casse à la manutention / Transport"],
-        ["Chantier Tour Horizon (GC)", "Zone C - Base Vie / Stockage", "2026-04-20", "Cartons & Emballages", 120, "Recyclage / Filière externe", "Sur-commande / Surplus de stock"],
-        ["Chantier Riviera", "Zone A - Gros Œuvre", "2026-05-08", "Chutes de fer / Acier", 180, "Recyclage / Filière externe", "Non-conformité / Défaut livraison"],
-        ["Pont Autoroutier Est", "Zone B - Second Œuvre", "2026-06-17", "Plâtre / Chutes de placo", 2.4, "Mise en Décharge / CET (Non Valorisé)", "Casse à la manutention / Transport"],
+        ["barrage de Nachtigal", "Zone A - Gros Œuvre", "2019-10-01", "Béton résiduel", 3.5, "Réemploi sur site", "Sur-commande / Surplus de stock"],
+        ["barrage de Nachtigal", "Zone B - Second Œuvre", "2019-10-02", "Bois de coffrage", 25, "Recyclage / Filière externe", "Erreur de découpe / Mise en œuvre"],
+        ["barrage de Nachtigal", "Voirie & Réseaux (VRD)", "2019-10-03", "Gravats / Remblais", 8, "Mise en Décharge / CET (Non Valorisé)", "Casse à la manutention / Transport"],
+        ["barrage de Nachtigal", "Zone C - Base Vie / Stockage", "2019-10-04", "Cartons & Emballages", 120, "Recyclage / Filière externe", "Sur-commande / Surplus de stock"],
+        ["barrage de Nachtigal", "Zone A - Gros Œuvre", "2019-10-05", "Chutes de fer / Acier", 180, "Recyclage / Filière externe", "Non-conformité / Défaut livraison"],
+        ["barrage de Nachtigal", "Zone B - Second Œuvre", "2019-10-06", "Plâtre / Chutes de placo", 2.4, "Mise en Décharge / CET (Non Valorisé)", "Casse à la manutention / Transport"],
     ]
     columns = ["Chantier", "Zone", "Date", "Type", "Quantite", "Filiere", "Cause"]
     return normaliser_dataframe(pd.DataFrame(rows, columns=columns))
@@ -279,18 +277,18 @@ else:
     )
 
 st.sidebar.caption(
-    "Les fichiers sont gérés par vous. Aucun fichier de démonstration n'est créé automatiquement."
+    "Sélectionnez un fichier test dans la liste ci-dessus."
 )
 st.sidebar.markdown("---")
 
 # ==============================================================================
 # 7. BOUTONS DE DEMONSTRATION MANUELLE
 # ==============================================================================
-st.sidebar.header("🧪 Données de démonstration")
+st.sidebar.header("🧪 Données de Test")
 
-if st.sidebar.button("📊 Charger la démonstration", use_container_width=True):
+if st.sidebar.button("📊 Charger les données", use_container_width=True):
     st.session_state.df = create_demo_data()
-    st.session_state.source_file = "Démonstration temporaire"
+    st.session_state.source_file = "Données temporaire"
     st.rerun()
 
 if st.sidebar.button("🗑️ Réinitialiser la session", use_container_width=True):
@@ -354,7 +352,7 @@ st.sidebar.markdown("---")
 st.sidebar.header("📝 Saisie manuelle rapide")
 
 with st.sidebar.form("form_dechet", clear_on_submit=True):
-    chantier = st.selectbox("Chantier", CHANTIERS_DISPONIBLES)
+    chantier = st.input("Chantier", CHANTIERS_DISPONIBLES)
     zone = st.selectbox("Zone / Lot", ZONES_CHANTIER)
     date_constat = st.date_input("Date", date.today())
     type_dechet = st.selectbox("Matériau", list(REFERENTIEL_MATERIAUX))
