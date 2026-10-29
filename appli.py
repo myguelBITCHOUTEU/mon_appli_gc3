@@ -478,7 +478,7 @@ else:
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             if len(grouped) > 1:
                 peak = grouped.loc[grouped["Cout_Estime"].idxmax()]
-                afficher_interpretation("",f"Le point le plus élevé est observé le **{pd.Timestamp(peak['Date']).strftime('%d/%m/%Y')}**, avec **{peak['Cout_Estime']:,.0f} FCFA**. Comparez cette date avec les événements du chantier : livraison, intempéries, changement d'équipe ou phase de travaux.")
+                afficher_interpretation("",f"La perte la plus élevée est observée le **{pd.Timestamp(peak['Date']).strftime('%d/%m/%Y')}**, avec **{peak['Cout_Estime']:,.0f} FCFA**. Comparez cette date avec les événements du chantier : livraison, intempéries, changement d'équipe ou phase de travaux.")
             else:
                 afficher_interpretation("Une seule date est disponible. Il faut plusieurs périodes pour confirmer une hausse ou une baisse.")
 
