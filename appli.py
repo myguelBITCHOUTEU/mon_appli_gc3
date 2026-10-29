@@ -35,7 +35,7 @@ TEXTES = {
     "fr": {
         "subtitle": "Collecte, analyse financière et pilotage environnemental des déchets de chantier",
         "files": "📁 Chantiers stockés", "choose": "Choisir un chantier à tester",
-        "load": "🧪 Charger ce chantier", "delete": "🗑️ Supprimer un chantier stocké",
+        "load": "🧪 tester ce chantier", "delete": "🗑️ Supprimer un chantier stocké",
         "delete_choose": "Chantier à supprimer", "confirm": "Je confirme la suppression définitive",
         "delete_button": "🗑️ Supprimer ce chantier", "deleted": "Chantier supprimé avec succès.",
         "confirm_error": "Veuillez confirmer la suppression.", "import": "📥 Importer et stocker un chantier",
@@ -152,13 +152,13 @@ with st.expander("👋 Guide rapide — première utilisation / Quick start", ex
         """
         <div class="helpbox">
         <b>1. Chargez vos données :</b> importez un fichier CSV dans la barre latérale,
-        et cliquez sur <b>Stocker </b>.<br>
+        et cliquez sur <b>Stocker </b> ou choisissez parmi les chantiers stockés et cliquez sur <b>tester ce chantier </b> .<br>
         <b>2. Vérifiez les filtres :</b> choisissez les chantiers, zones, matériaux et dates à analyser.<br>
         <b>3. Lisez les KPIs :</b> ils donnent une vue rapide du coût(pertes), du nombre de relevés,
         de la valorisation et du CO₂.<br>
         <b>4. Explorez les onglets :</b> chaque graphique est accompagné d'une explication
         et d'une action recommandée.<br>
-        <b>5. Interprétez la conclusion :</b> elle synthétise la priorité, le risque et les prochaines étapes.
+        <b>5. Interprétation et conclusion :</b> elle synthétise la priorité, le risque et les prochaines étapes.
         </div>
         """,
         unsafe_allow_html=True,
