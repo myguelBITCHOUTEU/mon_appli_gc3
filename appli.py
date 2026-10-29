@@ -39,7 +39,7 @@ TEXTES = {
         "delete_choose": "Chantier à supprimer", "confirm": "Je confirme la suppression définitive",
         "delete_button": "🗑️ Supprimer ce chantier", "deleted": "Chantier supprimé avec succès.",
         "confirm_error": "Veuillez confirmer la suppression.", "import": "📥 Importer et stocker un chantier",
-        "csv": "Choisir un fichier CSV", "store": "💾 Stocker et tester ce chantier",
+        "csv": "Choisir un fichier CSV", "store": "💾 Stocker ce chantier",
         "manual": "📝 Saisie manuelle", "site_name": "Nom du chantier",
         "site_placeholder": "Saisissez le nom du chantier", "save": "⚡ Enregistrer",
         "session": "🔄 Session", "reset": "🗑️ Réinitialiser la session",
@@ -61,7 +61,7 @@ TEXTES = {
         "delete_choose": "Site to delete", "confirm": "I confirm permanent deletion",
         "delete_button": "🗑️ Delete this site", "deleted": "Construction site deleted successfully.",
         "confirm_error": "Please confirm the deletion.", "import": "📥 Import and store a construction site",
-        "csv": "Choose a CSV file", "store": "💾 Store and test this site",
+        "csv": "Choose a CSV file", "store": "💾 Store this site",
         "manual": "📝 Manual entry", "site_name": "Construction site name",
         "site_placeholder": "Enter the construction site name", "save": "⚡ Save",
         "session": "🔄 Session", "reset": "🗑️ Reset session", "reset_done": "Session reset.",
@@ -152,9 +152,9 @@ with st.expander("👋 Guide rapide — première utilisation / Quick start", ex
         """
         <div class="helpbox">
         <b>1. Chargez vos données :</b> importez un fichier CSV dans la barre latérale,
-        puis donnez-lui un nom et cliquez sur <b>Stocker et tester</b>.<br>
+        et cliquez sur <b>Stocker </b>.<br>
         <b>2. Vérifiez les filtres :</b> choisissez les chantiers, zones, matériaux et dates à analyser.<br>
-        <b>3. Lisez les KPIs :</b> ils donnent une vue rapide du coût, du nombre de relevés,
+        <b>3. Lisez les KPIs :</b> ils donnent une vue rapide du coût(pertes), du nombre de relevés,
         de la valorisation et du CO₂.<br>
         <b>4. Explorez les onglets :</b> chaque graphique est accompagné d'une explication
         et d'une action recommandée.<br>
@@ -432,7 +432,7 @@ def analyser_resultats(data, language="fr"):
 
 **Situation globale.** Le tableau de bord analyse **{count} relevé(s)**, représentant **{total_quantity:,.2f} unité(s)** selon les unités saisies. Le coût estimé des pertes atteint **{total_cost:,.0f} FCFA** et l'impact carbone estimé **{total_co2:,.1f} kg CO₂eq**.
 
-**Priorité financière.** Le matériau **{main_type}** génère la plus grande part du coût (**{share_cost:.1f} %** du total). La **{main_zone}** est la zone prioritaire et la cause la plus coûteuse est **{main_cause}**. Cela signifie qu'une action ciblée sur ce couple matériau-zone-cause devrait produire le meilleur effet financier.
+**Priorité financière.** Le matériau **{main_type}** génère la plus grande part des pertes (**{share_cost:.1f} %** du total). La **{main_zone}** est la zone prioritaire et la cause la plus coûteuse est **{main_cause}**. Cela signifie qu'une action ciblée sur ce couple matériau-zone-cause devrait produire le meilleur effet financier.
 
 **Lecture environnementale.** Le taux de valorisation est de **{recovery:.1f} %**, niveau **{level}**. {level_text} Le principal contributeur carbone est **{main_carbon}**, avec **{share_carbon:.1f} %** de l'impact total. La mise en décharge concerne **{non_valorised:.1f} %** des relevés : ce flux mérite une vérification spécifique des possibilités de tri, de réemploi ou de recyclage.
 
@@ -442,7 +442,6 @@ def analyser_resultats(data, language="fr"):
 3. **Améliorer le tri** des flux actuellement non valorisés et vérifier les filières disponibles localement.
 4. **Fixer un objectif** de réduction du coût et du taux de mise en décharge, puis comparer les résultats au prochain relevé.
 
-**Important.** Les résultats sont des estimations d'aide à la décision. Les prix, facteurs CO₂, unités et quantités doivent être validés avant toute communication officielle."""
 
 # ==============================================================================
 # 10. TABLEAUX DE BORD ET EXPLICATIONS
@@ -472,16 +471,16 @@ else:
             fig = px.pie(grouped, names="Type", values="Cout_Estime", hole=.45, title="Coûts par matériau")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[0]
-            afficher_interpretation("Comment lire ce graphique", f"Chaque part représente la contribution d'un matériau au coût total. **{top['Type']}** arrive en tête avec **{top['Cout_Estime']:,.0f} FCFA**. Il faut donc vérifier en priorité ses quantités, son prix de référence et la cause associée.")
+            afficher_interpretation(f"Chaque part représente la contribution d'un matériau au coût total. **{top['Type']}** arrive en tête avec **{top['Cout_Estime']:,.0f} FCFA**. Il faut donc vérifier en priorité ses quantités, son prix de référence et la cause associée.")
         with g2:
             grouped = df_view.groupby("Date", as_index=False)["Cout_Estime"].sum().sort_values("Date")
             fig = px.line(grouped, x="Date", y="Cout_Estime", markers=True, title="Évolution des pertes")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             if len(grouped) > 1:
                 peak = grouped.loc[grouped["Cout_Estime"].idxmax()]
-                afficher_interpretation("Comment lire la tendance", f"Le point le plus élevé est observé le **{pd.Timestamp(peak['Date']).strftime('%d/%m/%Y')}**, avec **{peak['Cout_Estime']:,.0f} FCFA**. Comparez cette date avec les événements du chantier : livraison, intempéries, changement d'équipe ou phase de travaux.")
+                afficher_interpretation(f"Le point le plus élevé est observé le **{pd.Timestamp(peak['Date']).strftime('%d/%m/%Y')}**, avec **{peak['Cout_Estime']:,.0f} FCFA**. Comparez cette date avec les événements du chantier : livraison, intempéries, changement d'équipe ou phase de travaux.")
             else:
-                afficher_interpretation("Comment lire la tendance", "Une seule date est disponible. Il faut plusieurs périodes pour confirmer une hausse ou une baisse.")
+                afficher_interpretation("Une seule date est disponible. Il faut plusieurs périodes pour confirmer une hausse ou une baisse.")
 
     with tab2:
         st.markdown("Cet onglet aide à passer du constat à la recherche de la cause : une cause coûteuse est une piste d'amélioration, pas nécessairement une preuve de responsabilité.")
@@ -497,7 +496,7 @@ else:
             fig = px.bar(grouped, x="Zone", y="Cout_Estime", color="Zone", title="Pertes par zone")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[0]
-            afficher_interpretation("Zone prioritaire", f"**{top['Zone']}** concentre le coût le plus important (**{top['Cout_Estime']:,.0f} FCFA**). Commencez par observer le stockage, les déplacements, le tri et les pratiques de cette zone avant de généraliser une action.")
+            afficher_interpretation("Zone prioritaire", f"**{top['Zone']}** concentre les pertes les plus importantes (**{top['Cout_Estime']:,.0f} FCFA**). Commencez par observer le stockage, les déplacements, le tri et les pratiques de cette zone avant de généraliser une action.")
 
     with tab3:
         st.markdown("La quantité et le CO₂ ne doivent pas être comparés sans tenir compte des unités. Utilisez ces graphiques pour repérer les flux dominants, puis validez les facteurs de référence.")
@@ -522,7 +521,6 @@ else:
 
     with tab5:
         st.subheader(t("interpretation"))
-        st.markdown("Cette conclusion est calculée uniquement à partir des lignes actuellement filtrées. Elle doit être relue avec le contexte du chantier.")
         st.markdown(analyser_resultats(df_view, LANG))
 
 st.caption("BTP EcoWaste Pro — Les coûts et facteurs CO₂ doivent être adaptés aux données réelles du projet.")
