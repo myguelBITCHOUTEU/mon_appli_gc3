@@ -471,14 +471,14 @@ else:
             fig = px.pie(grouped, names="Type", values="Cout_Estime", hole=.45, title="Coûts par matériau")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[0]
-            afficher_interpretation(f"Chaque part représente la contribution d'un matériau au coût total. **{top['Type']}** arrive en tête avec **{top['Cout_Estime']:,.0f} FCFA**. Il faut donc vérifier en priorité ses quantités, son prix de référence et la cause associée.")
+            afficher_interpretation("",f"Chaque part représente la contribution d'un matériau au coût total. **{top['Type']}** arrive en tête avec **{top['Cout_Estime']:,.0f} FCFA**. Il faut donc vérifier en priorité ses quantités, son prix de référence et la cause associée.")
         with g2:
             grouped = df_view.groupby("Date", as_index=False)["Cout_Estime"].sum().sort_values("Date")
             fig = px.line(grouped, x="Date", y="Cout_Estime", markers=True, title="Évolution des pertes")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             if len(grouped) > 1:
                 peak = grouped.loc[grouped["Cout_Estime"].idxmax()]
-                afficher_interpretation(f"Le point le plus élevé est observé le **{pd.Timestamp(peak['Date']).strftime('%d/%m/%Y')}**, avec **{peak['Cout_Estime']:,.0f} FCFA**. Comparez cette date avec les événements du chantier : livraison, intempéries, changement d'équipe ou phase de travaux.")
+                afficher_interpretation("",f"Le point le plus élevé est observé le **{pd.Timestamp(peak['Date']).strftime('%d/%m/%Y')}**, avec **{peak['Cout_Estime']:,.0f} FCFA**. Comparez cette date avec les événements du chantier : livraison, intempéries, changement d'équipe ou phase de travaux.")
             else:
                 afficher_interpretation("Une seule date est disponible. Il faut plusieurs périodes pour confirmer une hausse ou une baisse.")
 
