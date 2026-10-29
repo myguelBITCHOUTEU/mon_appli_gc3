@@ -151,7 +151,7 @@ with st.expander("👋 Guide rapide — première utilisation / Quick start", ex
     st.markdown(
         """
         <div class="helpbox">
-        <b>1. Chargez vos données :</b> importez un fichier CSV dans la barre latérale,
+        <b>1. Chargez vos données :</b> importez un fichier CSV dans la barre latérale
         et cliquez sur <b>Stocker </b> ou choisissez parmi les chantiers stockés et cliquez sur <b>tester ce chantier </b> .<br>
         <b>2. Vérifiez les filtres :</b> choisissez les chantiers, zones, matériaux et dates à analyser.<br>
         <b>3. Lisez les KPIs :</b> ils donnent une vue rapide du coût(pertes), du nombre de relevés,
