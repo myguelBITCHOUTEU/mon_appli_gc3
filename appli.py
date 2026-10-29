@@ -440,7 +440,7 @@ def analyser_resultats(data, language="fr"):
 1. **Diagnostiquer** les quantités de **{main_type}** dans la **{main_zone}** : commande, découpe, stockage et manutention.
 2. **Traiter la cause** « **{main_cause}** » avec une mesure concrète : contrôle des commandes, optimisation des découpes, protection du stockage ou contrôle de livraison.
 3. **Améliorer le tri** des flux actuellement non valorisés et vérifier les filières disponibles localement.
-4. **Fixer un objectif** de réduction du coût et du taux de mise en décharge, puis comparer les résultats au prochain relevé."""
+4. **Fixer un objectif** de réduction de pertes et du taux de mise en décharge, puis comparer les résultats au prochain relevé."""
 
 
 # ==============================================================================
