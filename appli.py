@@ -490,7 +490,7 @@ else:
             fig = px.bar(grouped, x="Cout_Estime", y="Cause", orientation="h", color="Cout_Estime", title="Pertes par cause")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[-1]
-            afficher_interpretation("Cause prioritaire", f"**{top['Cause']}** est associée au montant le plus élevé (**{top['Cout_Estime']:,.0f} FCFA**). Organisez une vérification terrain : quand le déchet est-il apparu, qui l'a constaté et quelle mesure préventive peut être appliquée ?")
+            afficher_interpretation("Cause prioritaire", f"**{top['Cause']}** est associée à la perte la plus élevée (**{top['Cout_Estime']:,.0f} FCFA**). Organisez une vérification terrain : quand le déchet est-il apparu, qui l'a constaté et quelle mesure préventive peut être appliquée ?")
         with a2:
             grouped = df_view.groupby("Zone", as_index=False)["Cout_Estime"].sum().sort_values("Cout_Estime", ascending=False)
             fig = px.bar(grouped, x="Zone", y="Cout_Estime", color="Zone", title="Pertes par zone")
