@@ -480,7 +480,7 @@ else:
                 peak = grouped.loc[grouped["Cout_Estime"].idxmax()]
                 afficher_interpretation("",f"La perte la plus élevée est observée le **{pd.Timestamp(peak['Date']).strftime('%d/%m/%Y')}**, avec **{peak['Cout_Estime']:,.0f} FCFA**. Comparez cette date avec les événements du chantier : livraison, intempéries, changement d'équipe ou phase de travaux.")
             else:
-                afficher_interpretation("Une seule date est disponible. Il faut plusieurs périodes pour confirmer une hausse ou une baisse.")
+                afficher_interpretation("","Une seule date est disponible. Il faut plusieurs périodes pour confirmer une hausse ou une baisse.")
 
     with tab2:
         st.markdown("Cet onglet aide à passer du constat à la recherche de la cause : une cause coûteuse est une piste d'amélioration, pas nécessairement une preuve de responsabilité.")
@@ -490,13 +490,13 @@ else:
             fig = px.bar(grouped, x="Cout_Estime", y="Cause", orientation="h", color="Cout_Estime", title="Pertes par cause")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[-1]
-            afficher_interpretation("Cause prioritaire", f"**{top['Cause']}** est associée à la perte la plus élevée (**{top['Cout_Estime']:,.0f} FCFA**). Organisez une vérification terrain : quand le déchet est-il apparu, qui l'a constaté et quelle mesure préventive peut être appliquée ?")
+            afficher_interpretation("","Cause prioritaire", f"**{top['Cause']}** est associée à la perte la plus élevée (**{top['Cout_Estime']:,.0f} FCFA**). Organisez une vérification terrain : quand le déchet est-il apparu, qui l'a constaté et quelle mesure préventive peut être appliquée ?")
         with a2:
             grouped = df_view.groupby("Zone", as_index=False)["Cout_Estime"].sum().sort_values("Cout_Estime", ascending=False)
             fig = px.bar(grouped, x="Zone", y="Cout_Estime", color="Zone", title="Pertes par zone")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[0]
-            afficher_interpretation("Zone prioritaire", f"**{top['Zone']}** concentre les pertes les plus importantes (**{top['Cout_Estime']:,.0f} FCFA**). Commencez par observer le stockage, les déplacements, le tri et les pratiques de cette zone avant de généraliser une action.")
+            afficher_interpretation("","Zone prioritaire", f"**{top['Zone']}** concentre les pertes les plus importantes (**{top['Cout_Estime']:,.0f} FCFA**). Commencez par observer le stockage, les déplacements, le tri et les pratiques de cette zone avant de généraliser une action.")
 
     with tab3:
         st.markdown("La quantité et le CO₂ ne doivent pas être comparés sans tenir compte des unités. Utilisez ces graphiques pour repérer les flux dominants, puis validez les facteurs de référence.")
@@ -506,13 +506,13 @@ else:
             fig = px.bar(grouped, x="Filiere", y="Quantite", color="Filiere", title="Volumes par filière")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[0]
-            afficher_interpretation("Filières", f"La filière **{top['Filiere']}** reçoit le volume cumulé le plus important. Le taux de valorisation global est de **{recovery_rate:.1f} %**. Vérifiez si les flux déclarés comme valorisés disposent bien d'une preuve de collecte ou de traitement.")
+            afficher_interpretation("","Filières", f"La filière **{top['Filiere']}** reçoit le volume cumulé le plus important. Le taux de valorisation global est de **{recovery_rate:.1f} %**. Vérifiez si les flux déclarés comme valorisés disposent bien d'une preuve de collecte ou de traitement.")
         with r2:
             grouped = df_view.groupby("Type", as_index=False)["CO2_Impact_kg"].sum().sort_values("CO2_Impact_kg", ascending=False)
             fig = px.pie(grouped, names="Type", values="CO2_Impact_kg", title="Impact carbone par matériau")
             st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
             top = grouped.iloc[0]
-            afficher_interpretation("Impact carbone", f"**{top['Type']}** représente la contribution carbone la plus élevée (**{top['CO2_Impact_kg']:,.1f} kg CO₂eq**). Réduire ce flux à la source ou favoriser le réemploi peut avoir un effet environnemental supérieur à une action sur un flux plus petit.")
+            afficher_interpretation("","Impact carbone", f"**{top['Type']}** représente la contribution carbone la plus élevée (**{top['CO2_Impact_kg']:,.1f} kg CO₂eq**). Réduire ce flux à la source ou favoriser le réemploi peut avoir un effet environnemental supérieur à une action sur un flux plus petit.")
 
     with tab4:
         st.markdown("Le registre est la source détaillée des calculs. Utilisez-le pour vérifier les dates, unités, quantités, causes et filières avant de prendre une décision.")
